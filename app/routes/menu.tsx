@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Route } from "./+types/home";
+import type { Route } from "./+types/menu";
 import { Login } from "~/login/login";
 import { Signup } from "~/signup/signup";
 import { Home } from "~/home/home";

@@ -1,17 +1,8 @@
-/// <reference path="../types/env.d.ts" />
-
-interface AzureConfig {
-  readonly clientId: string;
-  readonly authority: string;
-  readonly redirectUri: string;
-  readonly knownAuthority: string;
-}
-
 /**
  * Validates and returns Azure B2C configuration from environment variables
  * @throws Error if any required environment variables are missing
  */
-function getAzureConfig(): AzureConfig {
+function getAzureConfig() {
   const config = {
     clientId: import.meta.env.VITE_AZURE_CLIENT_ID,
     authority: import.meta.env.VITE_AZURE_AUTHORITY,

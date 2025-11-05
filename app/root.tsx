@@ -15,10 +15,10 @@ import { azureConfig } from "./config/azure";
 
 const msalConfig: Configuration = {
   auth: {
-    clientId: azureConfig.clientId,
-    authority: azureConfig.authority,
-    redirectUri: azureConfig.redirectUri,
-    knownAuthorities: [azureConfig.knownAuthority]
+    clientId: azureConfig.clientId || '',
+    authority: azureConfig.authority || '',
+    redirectUri: azureConfig.redirectUri || '',
+    knownAuthorities: [azureConfig.knownAuthority || '']
   },
 };
 
