@@ -66,7 +66,7 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
 
   const callHttpVerifySignup = async (data: typeof formData) => {
     try {
-      const response = await fetch('http://localhost:7071/api/verifyUser', {
+      const response = await fetch('https://verify-user-g2b9gtgwcjgcafh0.australiasoutheast-01.azurewebsites.net/api/verifyUser', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,13 +77,17 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
       if (response.ok) {
         console.log('Verification result:', result);
         if (result.userExist) {
-          onLogin(data.userName);
+          onLogin(result.user.userName);
         } else {
           onSignup(data.userName, data.email);
         }
-      } else if (result.error) {
+      } else if (response.status === 400) {
+        const errorDetails = result.error || 'Verification failed. Please check your details.';
         console.error('Verification failed:', result);
-        setErrors({ general: result.details || 'Verification failed. Please check your details.' });
+        setErrors({ general: errorDetails });
+      } else if (response.status === 500) {
+        console.error('Verification failed:', result);
+        setErrors({ general: result.error || 'Verification failed. Please check your details.' });
       }
     } catch (error) {
       console.error('Error verifying signup:', error);
@@ -96,6 +100,14 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Sign Up</h1>
         <div className="space-y-4">
+          <label className="text-red-500 text-sm flex items-center gap-2">
+            {errors.general && (
+              <>
+                <AlertCircle size={14} />
+                {errors.general}
+              </>
+            )}
+          </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">

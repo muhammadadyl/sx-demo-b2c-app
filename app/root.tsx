@@ -9,6 +9,18 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { PublicClientApplication, type Configuration } from "@azure/msal-browser";
+import { MsalProvider } from "@azure/msal-react";
+import { azureConfig } from "./config/azure";
+
+const msalConfig: Configuration = {
+  auth: {
+    clientId: azureConfig.clientId,
+    authority: azureConfig.authority,
+    redirectUri: azureConfig.redirectUri,
+    knownAuthorities: [azureConfig.knownAuthority]
+  },
+};
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -24,6 +36,7 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const msalInstance = new PublicClientApplication(msalConfig);
   return (
     <html lang="en">
       <head>
@@ -33,7 +46,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <MsalProvider instance={msalInstance}>
+          {children}
+        </MsalProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -42,7 +57,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+      <Outlet />
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

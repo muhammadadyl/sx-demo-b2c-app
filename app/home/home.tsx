@@ -1,6 +1,11 @@
+import { useMsal } from "@azure/msal-react";
+
 // Home Component
 export const Home = ({ onNavigate, user }: { onNavigate: (route: string) => void; user: any }) => {
+  const { instance } = useMsal();
+  
   const handleLogout = async () => {
+    await instance.logout();
     onNavigate('login');
   };
 
