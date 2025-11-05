@@ -62,4 +62,6 @@ jobs:
           app-name: 'sx-demo-poc-b2c'
           slot-name: 'Production'
           package: .
+
           
+
