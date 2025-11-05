@@ -4,10 +4,10 @@
  */
 function getAzureConfig() {
   const config = {
-    clientId: import.meta.env.VITE_AZURE_CLIENT_ID,
-    authority: import.meta.env.VITE_AZURE_AUTHORITY,
-    redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URI,
-    knownAuthority: import.meta.env.VITE_AZURE_KNOWN_AUTHORITY,
+    clientId: import.meta.env.VITE_AZURE_CLIENT_ID || process.env.VITE_AZURE_CLIENT_ID,
+    authority: import.meta.env.VITE_AZURE_AUTHORITY || process.env.VITE_AZURE_AUTHORITY,
+    redirectUri: import.meta.env.VITE_AZURE_REDIRECT_URI || process.env.VITE_AZURE_REDIRECT_URI,
+    knownAuthority: import.meta.env.VITE_AZURE_KNOWN_AUTHORITY || process.env.VITE_AZURE_KNOWN_AUTHORITY,
   } as const;
 
   // Validate all required environment variables are present
