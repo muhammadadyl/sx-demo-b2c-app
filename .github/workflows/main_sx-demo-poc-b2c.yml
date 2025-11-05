@@ -47,6 +47,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+
+      - name: npm install react-router-serve
+        run: |
+          npm install @react-router/serve@7.9.2 
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -62,4 +66,5 @@ jobs:
           app-name: 'sx-demo-poc-b2c'
           slot-name: 'Production'
           package: .
+
           
