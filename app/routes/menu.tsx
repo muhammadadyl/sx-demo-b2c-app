@@ -34,6 +34,9 @@ export default function Menu() {
   };
 
   const handleLogin = (username: string) => {
+    // TODO: Migrate existing user to B2C, then redirect to reset password
+
+    // Redirect to login policy, if user exists
     instance.loginRedirect({
       scopes: ["openid", "offline_access"],
       loginHint: username
