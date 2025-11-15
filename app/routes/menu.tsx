@@ -33,14 +33,40 @@ export default function Menu() {
     setCurrentPage(page);
   };
 
-  const handleLogin = (username: string) => {
+  const handleLogin = async (username: string) => {
     // TODO: Migrate existing user to B2C, then redirect to reset password
 
-    // Redirect to login policy, if user exists
-    instance.loginRedirect({
-      scopes: ["openid", "offline_access"],
-      loginHint: username
+    const params = new URLSearchParams();
+    params.append("username", username);
+
+    const response = await fetch(`https://verify-user-g2b9gtgwcjgcafh0.australiasoutheast-01.azurewebsites.net/api/authMethod?${params}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
+
+    if (response.status === 404) {
+      // User not found, navigate to signup
+      return;
+    }
+
+    // Redirect to login policy, if user exists
+    if (response.status === 200) {
+      const data = await response.json();
+      if (data.method === 'sms') {
+        instance.loginRedirect({
+          authority: "https://sxpoctest.b2clogin.com/sxpoctest.onmicrosoft.com/B2C_1_SIGNINSMS",
+          scopes: ["openid", "offline_access"],
+          loginHint: username
+        });
+      } else {
+        instance.loginRedirect({
+          scopes: ["openid", "offline_access"],
+          loginHint: username
+        });
+      }
+    }
   };
 
   const handleSignup = (username: string, email: string) => {

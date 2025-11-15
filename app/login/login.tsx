@@ -62,17 +62,6 @@ export const Login = ({ onNavigate, onLogin }: LoginPageProps) => {
             </button>
           </div>
         </div>
-
-        <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-xs text-yellow-800">
-            <strong>Configuration Required:</strong> Update the msalConfig object with your Azure AD B2C credentials:
-          </p>
-          <ul className="text-xs text-yellow-700 mt-2 space-y-1 ml-4 list-disc">
-            <li>clientId: Your Application (client) ID</li>
-            <li>authority: Your B2C policy URL</li>
-            <li>knownAuthorities: Your tenant name</li>
-          </ul>
-        </div>
       </div>
     </div>
   );

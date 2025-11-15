@@ -15,12 +15,32 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
     email: '',
     userName: '',
     memberCardNumber: '',
-    policyNumber: ''
+    policyNumber: '',
+    isSmsAuth: false,
+    phoneNumber: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const target = e.target as HTMLInputElement;
+    const { name, value, type } = target;
+
+    // handle MFA radio group named "mfa"
+    if (type === 'radio' && name === 'mfa') {
+      const isSMS = value === 'sms';
+      setFormData(prev => ({
+        ...prev,
+        isSmsAuth: isSMS,
+        // clear phone number when switching off SMS
+        phoneNumber: isSMS ? prev.phoneNumber : ''
+      }));
+      // clear phone error when switching
+      if (errors.phoneNumber) {
+        setErrors(prev => ({ ...prev, phoneNumber: '' }));
+      }
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -44,6 +64,14 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
+    }
+
+    if (formData.isSmsAuth) {
+      if (!formData.phoneNumber.trim()) {
+        newErrors.phoneNumber = 'Phone number is required for SMS authentication'; 
+      } else if (!/^\+\d{1,3}\s?\d{4,14}$/.test(formData.phoneNumber)) {
+        newErrors.phoneNumber = 'Phone number is invalid. Include country code, e.g., +64 21 1234567';
+      }
     }
     
     if (!formData.memberCardNumber.trim() && !formData.policyNumber.trim()) {
@@ -213,6 +241,73 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
               {errors.userName && (
                 <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                   <AlertCircle size={12} /> {errors.userName}
+                </p>
+              )}
+            </div>
+          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="MultiFactorAuth" className="block text-sm font-medium text-gray-700 mb-2">
+                Prefered second factor authentication
+              </label>
+
+              <div className="flex items-center space-x-3 mt-2">
+                <label
+                  htmlFor="rdEmail"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md border ${
+                    !formData.isSmsAuth ? 'bg-purple-50 border-purple-300' : 'bg-white border-gray-200'
+                  } cursor-pointer`}
+                >
+                  <input
+                    type="radio"
+                    id="rdEmail"
+                    name="mfa"
+                    value="email"
+                    checked={!formData.isSmsAuth}
+                    onChange={handleChange}
+                    className="accent-purple-600 w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">Email</span>
+                </label>
+
+                <label
+                  htmlFor="rdSMS"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md border ${
+                    formData.isSmsAuth  ? 'bg-purple-50 border-purple-300' : 'bg-white border-gray-200'
+                  } cursor-pointer`}
+                >
+                  <input
+                    type="radio"
+                    id="rdSMS"
+                    name="mfa"
+                    value="sms"
+                    checked={formData.isSmsAuth}
+                    onChange={handleChange}
+                    className="accent-purple-600 w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-700">SMS</span>
+                </label>
+              </div>
+            </div>
+            <div className={formData.isSmsAuth ? '' : 'hidden'}>
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                id="phoneNumber"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                placeholder="+64 21 1234598"
+                onChange={handleChange}
+                disabled={!formData.isSmsAuth}
+                className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+                } ${ !formData.isSmsAuth ? 'opacity-50 cursor-not-allowed' : ''}`}
+              />
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                  <AlertCircle size={12} /> {errors.phoneNumber}
                 </p>
               )}
             </div>
