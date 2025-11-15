@@ -37,9 +37,9 @@ export default function Menu() {
     // TODO: Migrate existing user to B2C, then redirect to reset password
 
     const params = new URLSearchParams();
-    params.append("username", username);
+    params.append("userName", username);
 
-    const response = await fetch(`https://verify-user-g2b9gtgwcjgcafh0.australiasoutheast-01.azurewebsites.net/api/authMethod?${params}`, {
+    const response = await fetch(`https://verify-user-g2b9gtgwcjgcafh0.australiasoutheast-01.azurewebsites.net/api/AuthMethod?${params}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
