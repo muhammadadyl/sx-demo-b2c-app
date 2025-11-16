@@ -20,6 +20,9 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
     phoneNumber: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [phoneVerificationState, setPhoneVerificationState] = useState('unverified'); // 'unverified', 'verifying', 'verified'
+  const [verifyCode, setVerifyCode] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const target = e.target as HTMLInputElement;
@@ -92,8 +95,57 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
     }
   };
 
+  const handleVerifyPhone = async(data: typeof formData) => {
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length === 0) {
+      // Hide phone number UI
+      setPhoneVerificationState('verifying');
+      // Simulate sending verification code
+      const response = await fetch('https://verify-user-g2b9gtgwcjgcafh0.australiasoutheast-01.azurewebsites.net/api/details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if(!response.ok) {
+        setPhoneVerificationState('unverified');
+        setErrors({ phoneNumber: 'Failed to send verification code. Please check the phone number.' });
+      } else {
+        // In real app, handle response and errors accordingly
+        const result = await response.json();
+        setVerifyCode(result.verificationCode);
+      }
+
+    } else {
+      setErrors(newErrors);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    const code = verifyCode.trim();
+    const response = await fetch('https://verify-user-g2b9gtgwcjgcafh0.australiasoutheast-01.azurewebsites.net/api/code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ phoneNumber: formData.phoneNumber, verificationCode: code }),
+    });
+
+    if (response.ok) {
+      setPhoneVerificationState('verified');
+    } else {
+      setPhoneVerificationState('unverified');
+      setErrors({ verifyCode: 'Verification code is incorrect. Please try again.' });
+    }
+
+  };
+
   const callHttpVerifySignup = async (data: typeof formData) => {
     try {
+      setIsSubmitting(true);
+
       const response = await fetch('https://verify-user-g2b9gtgwcjgcafh0.australiasoutheast-01.azurewebsites.net/api/verifyUser', {
         method: 'POST',
         headers: {
@@ -103,6 +155,7 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
       });
       const result = await response.json();
       if (response.ok) {
+        setIsSubmitting(false);
         console.log('Verification result:', result);
         if (result.userExist) {
           onLogin(result.user.userName);
@@ -113,13 +166,16 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
         const errorDetails = result.error || 'Verification failed. Please check your details.';
         console.error('Verification failed:', result);
         setErrors({ general: errorDetails });
+        setIsSubmitting(false);
       } else if (response.status === 500) {
         console.error('Verification failed:', result);
         setErrors({ general: result.error || 'Verification failed. Please check your details.' });
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Error verifying signup:', error);
       setErrors({ general: 'An error occurred during verification. Please try again later.' });
+      setIsSubmitting(false);
     }
   };
 
@@ -245,7 +301,7 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
               )}
             </div>
           </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="MultiFactorAuth" className="block text-sm font-medium text-gray-700 mb-2">
                 Prefered second factor authentication
@@ -289,7 +345,7 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
                 </label>
               </div>
             </div>
-            <div className={formData.isSmsAuth ? '' : 'hidden'}>
+            <div className={` ${formData.isSmsAuth && phoneVerificationState === 'unverified' ? '' : 'hidden'}`}>
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
                 Phone Number
               </label>
@@ -301,13 +357,46 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
                 placeholder="+64 21 1234598"
                 onChange={handleChange}
                 disabled={!formData.isSmsAuth}
-                className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                className={`w-3/5 px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
                   errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
                 } ${ !formData.isSmsAuth ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
+              <button 
+                onClick={() => handleVerifyPhone(formData)}
+                className="w-2/5 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors font-medium"
+              >
+                Send Code
+              </button>
               {errors.phoneNumber && (
                 <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                   <AlertCircle size={12} /> {errors.phoneNumber}
+                </p>
+              )}
+            </div>
+            <div className={` ${ phoneVerificationState === 'verifying' ? '' : 'hidden'}`}>
+              <label htmlFor="verifyCode" className="block text-sm font-medium text-gray-700 mb-2">
+                Verify Code
+              </label>
+              <input
+                type="number"
+                id="verifyCode"
+                name="verifyCode"
+                value={verifyCode}
+                onChange={(e) => setVerifyCode(e.target.value)}
+                placeholder="Enter verification code"
+                className={`w-3/5 px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                  errors.verifyCode ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              <button 
+                onClick={() => handleVerifyCode()}
+                className="w-2/5 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors font-medium"
+              >
+                Verify
+              </button>
+              {errors.verifyCode && (
+                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                  <AlertCircle size={12} /> {errors.verifyCode}
                 </p>
               )}
             </div>
@@ -363,7 +452,8 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
           <div className="flex gap-4 pt-4">
             <button
               onClick={handleSubmit}
-              className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors font-medium"
+              className={`flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors font-medium ${isSubmitting || (formData.isSmsAuth && phoneVerificationState !== 'verified') ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isSubmitting || (formData.isSmsAuth && phoneVerificationState !== 'verified')}
             >
               Register
             </button>
