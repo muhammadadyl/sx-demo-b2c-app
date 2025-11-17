@@ -69,17 +69,28 @@ export default function Menu() {
     }
   };
 
-  const handleSignup = (username: string, email: string) => {
+  const handleSignup = async (username: string, tempPassword: string, method: string) => {
     // Redirect to reset password policy
-    instance.loginRedirect({
-      authority: "https://sxpoctest.b2clogin.com/sxpoctest.onmicrosoft.com/B2C_1_PWRESER",
-      scopes: ["openid", "offline_access"],
-      loginHint: username,
-      prompt: "login",
-      extraQueryParameters: {
-        email_hint: email
-      }
-    });
+    // Redirect to login policy, if user exists
+    if (method === 'sms') {
+      instance.loginRedirect({
+        authority: "https://sxpoctest.b2clogin.com/sxpoctest.onmicrosoft.com/B2C_1_SIGNINSMS",
+        scopes: ["openid", "offline_access"],
+        loginHint: username,
+        extraQueryParameters: {
+          reset_password: tempPassword
+        }
+      });
+    } else {
+      instance.loginRedirect({
+        authority: "https://sxpoctest.b2clogin.com/sxpoctest.onmicrosoft.com/B2C_1_SIGNIN",
+        scopes: ["openid", "offline_access"],
+        loginHint: username,
+        extraQueryParameters: {
+          reset_password: tempPassword
+        }
+      });
+    }
   };
 
   return (

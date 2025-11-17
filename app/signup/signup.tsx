@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 interface SignupPageProps {
   onNavigate: (page: string) => void;
-  onSignup: (username: string, email: string) => void;
+  onSignup: (username: string, tempPassword: string, method: string) => void;
   onLogin: (username: string) => void;
 }
 
@@ -160,7 +160,7 @@ export const Signup = ({ onNavigate, onSignup, onLogin }: SignupPageProps) => {
         if (result.userExist) {
           onLogin(result.user.userName);
         } else {
-          onSignup(data.userName, data.email);
+          onSignup(result.user.userName, result.tempPassword, result.method);
         }
       } else if (response.status === 400) {
         const errorDetails = result.error || 'Verification failed. Please check your details.';

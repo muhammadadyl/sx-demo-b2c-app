@@ -135,6 +135,18 @@
             usernameField.disabled = true;
             usernameField.readOnly = true;
             usernameField.setAttribute('aria-readonly', 'true');
+
+            var resetPassword = decodeURIComponent(new URLSearchParams(window.location.search).get('reset_password') || '');
+            if(!!resetPassword){
+              var passwordField = document.getElementById('password');
+              if(!!passwordField){
+                var next = document.getElementById('next');
+                if(!!next){
+                  passwordField.value = resetPassword;
+                  next.click();
+                }
+              }
+            }
           }
         }
 
